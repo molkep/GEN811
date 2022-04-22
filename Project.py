@@ -34,6 +34,7 @@ def fileparse():
 
 #function for detecting orfs in sequence data
 def orffinder(seq):
+    #if using frame from this for phase, you will need to define that 1-3 is 0-2 if the strand is forward, and that 4-6 is 0-2 if strand is reversed
     #iterate over each frame, 1-6
     for frame in range(1, 6):
         #make the sequence a seq instance
@@ -91,6 +92,7 @@ def BLAST():
     #the database has to be created on the local directory
     db_create = subprocess.run("makeblastdb -in database.fna -parse_seqids -dbtype nucl -out db", shell=True, stdout=subprocess.PIPE)
     #the actual blast command. the output file is in format 6, which can be tailored to give all the information necessary fora gff file format
+    #To fix the phase, maybe try to do qframe instead of sframe , same with strand possibly. either that or figure out how to pull the frame from the orf finder slider window
     blast_run = subprocess.run("blastn -query orf.fasta -db db -out orf_results.txt  -outfmt '6 qseqid sseqid sstart send score sframe sstrand salltitles'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #remove fasta file, as is no longer needed
     os.remove("orf.fasta")
