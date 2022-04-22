@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 
 #64 codons, 3 stop
 #probability that you will see a stop codon: 3/64 -> 1/21(5% ish)
@@ -91,7 +91,7 @@ def BLAST():
     #the database has to be created on the local directory
     db_create = subprocess.run("makeblastdb -in database.fna -parse_seqids -dbtype nucl -out db", shell=True, stdout=subprocess.PIPE)
     #the actual blast command. the output file is in format 6, which can be tailored to give all the information necessary fora gff file format
-    blast_run = subprocess.run("blastn -query orf.fasta -db db -out orf_results.txt  -outfmt '6 qseqid sseqid sstart send score sframe sstrand salltitles'", shell=True, stdout=subproce>
+    blast_run = subprocess.run("blastn -query orf.fasta -db db -out orf_results.txt  -outfmt '6 qseqid sseqid sstart send score sframe sstrand salltitles'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #remove fasta file, as is no longer needed
     os.remove("orf.fasta")
     return
@@ -117,7 +117,7 @@ def gffmaker():
                     orf_dict[entry[0]]=entry[1:]
                 #iterating through the values, the data from the blast query can be parsed and a gff file entry can be constructed (tab delimited) from it
                 for value in orf_dict.values():
-                    writer.writerow(["{0}".format(value[0].split("|")[1]), "NCBI", "ORF", "{0}".format(value[1]), "{0}".format(value[2]), "{0}".format(value[3]), "{0}".format(value[5])>
+                    writer.writerow(["{0}".format(value[0].split("|")[1]), "NCBI", "ORF", "{0}".format(value[1]), "{0}".format(value[2]), "{0}".format(value[3]), "{0}".format(value[5]), "{0}".format(value[4]), "{0}".format(value[6])])
     except IOError:
         print("Error handling files!")
     return
