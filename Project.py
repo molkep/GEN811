@@ -7,63 +7,67 @@
 
 #import necessary modules
 import argparse
-import Bio.Seq
 import os
 import subprocess
 import csv
 
 #function to parse out fasta headers and create one contiguous sequence
 def fileparse():
-    header = ""
-    seq = ""
+    sequences = []
+    descr = None
     try:
         #open specified file from user
         with open("{0}".format(args.input), "r") as fasta_file:
-            #for each line, look for a greater than sign. if its there,
-            #continue to next line. if it doesnt (aka sequence data), add to a string until one long string of data is created
-            for line in fasta_file:
-                line=line.rstrip()
-                if line.startswith(">"):
-                    continue
+            line = fasta_file.readline()[:-1]  # always trim newline
+            while line:
+                if line[0] == '>':
+                    if descr:  # any sequence found yet?
+                        sequences.append((descr, seq))
+                    descr = str(line[1:].split('>'))
+                    seq = ''  # start a new sequence
                 else:
                     seq += line
+                line = fasta_file.readline()[:-1]
+            sequences.append((descr, seq))
     except IOError:
         print("Error reading file")
     #return string of sequence data
-    return seq
+    return sequences
 
 #function for detecting orfs in sequence data
-def orffinder(seq):
-    #if using frame from this for phase, you will need to define that 1-3 is 0-2 if the strand is forward, and that 4-6 is 0-2 if strand is reversed
-    #iterate over each frame, 1-6
-    for frame in range(1, 6):
-        #make the sequence a seq instance
-        sequence = Bio.Seq.Seq("{0}".format(seq))
-        #create a reverse complement of sequence
-        revcomp = sequence.reverse_complement()
-        #if the frame is 1-3, use the normal sequence. if 4-6, use revcomp
-        strand = sequence if frame < 4 else revcomp
-        strand = strand.upper()
-        #reference lists of all start and stop codons
-        start_codon = ["ATG"]
-        stop_codons = ["TAA", "TAG", "TGA"]
-        #start scanning the sequence for the first start/stop codon and have it look at every 3 nucleotides
-        for startorf in range(frame % 3, len(strand), 3):
-           #define what a codon looks like
-            begin = strand[startorf:startorf+3]
-            #if the codon is in either of the reference lists, have that be the start of the orf
-            if begin in start_codon or begin in stop_codons:
-                coord1 = startorf
-                #start scanning for the stop codon, aka the end of the orf, at the beginning of the start/stop codon
-                for endorf in range(coord1, len(strand), 3):
-                    end = strand[endorf:endorf+3]
-#if a stop codon is hit, have that be the end of the orf
-                    if end in stop_codons:
-                        coord2 = endorf
-                        #index the strand by the first and last codons found and save to a yeild function
-                        yield (strand[coord1:coord2+3])
-                        break
-        return
+def orffinder(sequences):
+    listOfOrf = list()
+    for index, value in enumerate(sequences):  # looping over the fragments extracted
+        frames = [] # storing the six frame translation that it zould be extacted from the fragments 
+        dna = value[1]  # extract the fragment 
+        description = value[0] #extact the desciption even were not use it, just for learning purpose
+        reverseCdna = [] # storing the reverse compliments
+    # create the positive frames
+    # split the frames into codons for better performance
+        frames.append([dna[i:i + 3] for i in range(0, len(dna), 3)])
+        frames.append([dna[i:i + 3] for i in range(1, len(dna), 3)])
+        frames.append([dna[i:i + 3] for i in range(2, len(dna), 3)])
+    # reverse compliment of the fragment
+        reverse = {"A": "T", "C": "G", "T": "A", "G": "C"}
+        for i in range(len(dna)):
+            reverseCdna.append(reverse[dna[-i - 1]]) if dna[-i - 1] in reverse.keys() else reverseCdna.append(dna[-i - 1])  # if any contamination found we keep it for further more check
+    reverseCdna = ''.join(reverseCdna) # joining 
+    # create the negative frames
+    frames.append([reverseCdna[i:i + 3] for i in range(0, len(reverseCdna), 3)])
+    frames.append([reverseCdna[i:i + 3] for i in range(1, len(reverseCdna), 3)])
+    frames.append([reverseCdna[i:i + 3] for i in range(2, len(reverseCdna), 3)])
+   
+    for i in range(0,len(frames),1): #looping all the frames
+        start=0
+        while start <len(frames[i]): #looping each frame for start and stop codons 
+            if frames[i][start]=="ATG" or frames[i][start]=="TTG" or frames[i][start]=="CTG" or frames[i][start]=="GTG":
+                for stop in range(start+1,len(frames[i]),1):
+                         if frames[i][stop]=="TAA" or  frames[i][stop]=="TAG" or  frames[i][stop]=="TGA" :
+                                listOfOrf.append(frames[i][start:stop]) # retrieve the orf 
+                                start=stop+1 # avoiding multiple start codons
+                                break
+            start+=1
+    return listOfOrf
 
 #function to filter orfs by length
 def filterorfs():
