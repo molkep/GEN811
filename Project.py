@@ -51,16 +51,16 @@ def orffinder(sequences):
         reverse = {"A": "T", "C": "G", "T": "A", "G": "C"}
         for i in range(len(dna)):
             reverseCdna.append(reverse[dna[-i - 1]]) if dna[-i - 1] in reverse.keys() else reverseCdna.append(dna[-i - 1])  # if any contamination found we keep it for further more check
-    reverseCdna = ''.join(reverseCdna) # joining 
+        reverseCdna = ''.join(reverseCdna) # joining 
     # create the negative frames
-    frames.append([reverseCdna[i:i + 3] for i in range(0, len(reverseCdna), 3)])
-    frames.append([reverseCdna[i:i + 3] for i in range(1, len(reverseCdna), 3)])
-    frames.append([reverseCdna[i:i + 3] for i in range(2, len(reverseCdna), 3)])
+        frames.append([reverseCdna[i:i + 3] for i in range(0, len(reverseCdna), 3)])
+        frames.append([reverseCdna[i:i + 3] for i in range(1, len(reverseCdna), 3)])
+        frames.append([reverseCdna[i:i + 3] for i in range(2, len(reverseCdna), 3)])
    
     for i in range(0,len(frames),1): #looping all the frames
         start=0
         while start <len(frames[i]): #looping each frame for start and stop codons 
-            if frames[i][start]=="ATG" or frames[i][start]=="TTG" or frames[i][start]=="CTG" or frames[i][start]=="GTG":
+            if frames[i][start]=="ATG":
                 for stop in range(start+1,len(frames[i]),1):
                          if frames[i][stop]=="TAA" or  frames[i][stop]=="TAG" or  frames[i][stop]=="TGA" :
                                 listOfOrf.append(frames[i][start:stop]) # retrieve the orf 
@@ -77,6 +77,7 @@ def filterorfs():
         with open("orf.fasta", "w") as orf_file:
             #if the orf found is longer than 300 bps (100 amino acids), it is most likely a true orf
             for orf in orffinder(fileparse()):
+                orf = "".join(orf)
                 if len(orf) >= 300:
                     if len(orf) <= 1200:
                        #a header for each orf is written followed by a number that increases with each orf added
