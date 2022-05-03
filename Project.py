@@ -79,7 +79,7 @@ def filterorfs():
             for orf in orffinder(fileparse()):
                 orf = "".join(orf)
                 if len(orf) >= 300:
-                    if len(orf) <= 1200:
+                    if len(orf) <= 1050:
                        #a header for each orf is written followed by a number that increases with each orf added
                        orf_file.write("> seq{0}\n".format(count))
                        orf_file.write("{0}\n".format(orf))
