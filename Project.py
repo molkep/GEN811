@@ -97,8 +97,7 @@ def BLAST():
     #the database has to be created on the local directory
     db_create = subprocess.run("makeblastdb -in database.fna -parse_seqids -dbtype nucl -out db", shell=True, stdout=subprocess.PIPE)
     #the actual blast command. the output file is in format 6, which can be tailored to give all the information necessary fora gff file format
-    #To fix the phase, maybe try to do qframe instead of sframe , same with strand possibly. either that or figure out how to pull the frame from the orf finder slider window
-    blast_run = subprocess.run("blastn -query orf.fasta -db db -out orf_results.txt  -outfmt '6 qseqid sseqid sstart send score sframe sstrand salltitles'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    blast_run = subprocess.run("blastn -query orf.fasta -db db -out orf_results.txt  -outfmt '6 qseqid sseqid sstart send score qframe qstrand salltitles'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #remove fasta file, as is no longer needed
     os.remove("orf.fasta")
     return
